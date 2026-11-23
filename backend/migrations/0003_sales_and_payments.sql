@@ -1,26 +1,28 @@
 -- 0003_sales_and_payments.sql
--- Point of sale: sales, line items, payments, expenses.
+-- Products, sale items, payments, expenses (requires suppliers & customers from 0002).
 
-CREATE TABLE IF NOT EXISTS sales (
+CREATE TABLE IF NOT EXISTS products (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
-  customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
-  invoice_no TEXT NOT NULL,
-  subtotal NUMERIC(12,2) NOT NULL DEFAULT 0,
-  discount NUMERIC(12,2) NOT NULL DEFAULT 0,
-  total NUMERIC(12,2) NOT NULL DEFAULT 0,
-  payment_method TEXT NOT NULL DEFAULT 'cash',
-  payment_status TEXT NOT NULL DEFAULT 'paid',
-  notes TEXT NOT NULL DEFAULT '',
-  sale_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  name TEXT NOT NULL,
+  sku TEXT NOT NULL,
+  barcode TEXT NOT NULL DEFAULT '',
+  category TEXT NOT NULL DEFAULT 'Other accessories',
+  brand TEXT NOT NULL DEFAULT '',
+  supplier_id UUID REFERENCES suppliers(id) ON DELETE SET NULL,
+  cost NUMERIC(12,2) NOT NULL DEFAULT 0,
+  price NUMERIC(12,2) NOT NULL DEFAULT 0,
+  qty INTEGER NOT NULL DEFAULT 0,
+  min_qty INTEGER NOT NULL DEFAULT 5,
+  location TEXT NOT NULL DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_sales_invoice_business
-  ON sales (business_id, invoice_no);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_products_sku_business
+  ON products (business_id, sku);
 
-CREATE INDEX IF NOT EXISTS idx_sales_business ON sales (business_id);
-CREATE INDEX IF NOT EXISTS idx_sales_date ON sales (sale_date);
+CREATE INDEX IF NOT EXISTS idx_products_category ON products (category);
+CREATE INDEX IF NOT EXISTS idx_products_business ON products (business_id);
 
 CREATE TABLE IF NOT EXISTS sale_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

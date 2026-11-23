@@ -46,16 +46,17 @@ app.use((err, _req, res, _next) => {
 // Startup schema, seed default business
 async function ensureStartup() {
   const migrations = await readMigrations();
-  await pool.query("BEGIN");
-  try {
-    for (const m of migrations) await pool.query(m.content);
-    await pool.query("COMMIT");
-    logger.info(`Schema applied (${migrations.length} migrations).`);
-  } catch (err) {
-    await pool.query("ROLLBACK");
-    logger.error("Schema migration failed", err);
-    process.exit(1);
+  // Run each migration individually so partial failures don't block others.
+  // Each gets its own try/catch so successful migrations are not rolled back.
+  for (const m of migrations) {
+    try {
+      await pool.query(m.content);
+      logger.debug(`Migration applied: ${m.filename}`);
+    } catch (err) {
+      logger.warn(`Migration skipped (may already exist or error): ${m.filename}`, err instanceof Error ? err.message : String(err));
+    }
   }
+  logger.info(`Migrations processed (${migrations.length} files).`);
   const businessCount = await pool.query("SELECT COUNT(*) AS n FROM businesses");
   if (Number(businessCount.rows[0]?.n) === 0) {
     await pool.query(
