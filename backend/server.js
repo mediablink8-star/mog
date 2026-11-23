@@ -45,20 +45,16 @@ app.use((err, _req, res, _next) => {
 
 // Startup schema, seed default business
 async function ensureStartup() {
+  const migrations = await readMigrations();
+  await pool.query("BEGIN");
   try {
-    await pool.query("SELECT 1 FROM businesses LIMIT 1");
-  } catch {
-    const migrations = await readMigrations();
-    await pool.query("BEGIN");
-    try {
-      for (const m of migrations) await pool.query(m.content);
-      await pool.query("COMMIT");
-      logger.info(`Schema applied (${migrations.length} migrations).`);
-    } catch (err) {
-      await pool.query("ROLLBACK");
-      logger.error("Schema migration failed", err);
-      process.exit(1);
-    }
+    for (const m of migrations) await pool.query(m.content);
+    await pool.query("COMMIT");
+    logger.info(`Schema applied (${migrations.length} migrations).`);
+  } catch (err) {
+    await pool.query("ROLLBACK");
+    logger.error("Schema migration failed", err);
+    process.exit(1);
   }
   const businessCount = await pool.query("SELECT COUNT(*) AS n FROM businesses");
   if (Number(businessCount.rows[0]?.n) === 0) {
