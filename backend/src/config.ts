@@ -13,7 +13,7 @@ const envSchema = z.object({
     .default("true")
     .transform((v) => v !== "false"),
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
-  ADMIN_PASSWORD: z.string().min(6, "ADMIN_PASSWORD is required"),
+  ADMIN_PASSWORD: z.string().min(6, "ADMIN_PASSWORD is required").default("admin123"),
   CORS_ORIGIN: z.string().default("*"),
   PORT: z
     .string()
