@@ -79,7 +79,7 @@ export async function closePool(): Promise<void> {
   }
 }
 
-const SCHEMA_DIR = join(import.meta.dirname ?? process.cwd(), "migrations");
+const SCHEMA_DIR = join(process.cwd(), "migrations");
 
 export async function readMigrations(): Promise<{ filename: string; content: string }[]> {
   let { readdirSync } = await import("node:fs");
