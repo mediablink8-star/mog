@@ -23,7 +23,7 @@ const envSchema = z.object({
   AI_PROVIDER: z
     .string()
     .default("off")
-    .toLowerCase()
+    .transform((v) => v.toLowerCase())
     .refine((v) => ["off", "openai", "anthropic", "google", "ollama", "bedrock", "openrouter"].includes(v)),
   AI_MODEL: z.string().default("gpt-4o-mini"),
   AI_API_KEY: z.string().default(""),
