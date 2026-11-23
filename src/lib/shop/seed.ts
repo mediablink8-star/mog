@@ -1,0 +1,392 @@
+import type { Customer, Estimate, Expense, Inquiry, Invoice, Part, Repair, Seq, Settings } from "@/lib/shop/types";
+
+export const TAX = 0.08;
+
+const HISTORY: Array<
+  [string, number, string, string, string, string, string, string, number, string]
+> = [
+  ["rh1", 2361, "c1", "DeWalt", "Impact driver", "DCF887", "Worn anvil", "Alex Rivera", 85, "2026-08-06"],
+  ["rh2", 2366, "c4", "Milwaukee", "Hackzall", "2719-20", "Blade clamp slipping", "Sam Ortiz", 65, "2026-08-18"],
+  ["rh3", 2370, "c6", "Makita", "Circular saw", "HS7600", "Dull arbor", "Priya Shah", 90, "2026-08-27"],
+  ["rh4", 2374, "c2", "Bosch", "Rotary hammer", "GBH18V-26", "Mode selector stuck", "Alex Rivera", 140, "2026-09-03"],
+  ["rh5", 2378, "c7", "Ridgid", "Impact wrench", "R86912", "No torque", "Sam Ortiz", 110, "2026-09-09"],
+  ["rh6", 2381, "c5", "DeWalt", "Sander", "DWE6423", "Pad won't hold", "Priya Shah", 55, "2026-09-16"],
+  ["rh7", 2384, "c8", "Milwaukee", "Packout radio", "2950-20", "No audio", "Alex Rivera", 70, "2026-09-24"],
+  ["rh8", 2388, "c9", "Festool", "Sander", "ETS 125", "Dust port cracked", "Priya Shah", 160, "2026-10-02"],
+  ["rh9", 2391, "c3", "Ryobi", "Blower", "P2108", "Weak airflow", "Sam Ortiz", 45, "2026-10-08"],
+  ["rh10", 2394, "c10", "Hilti", "Angle grinder", "AG 4S-A22", "Spindle play", "Alex Rivera", 130, "2026-10-15"],
+  ["rh11", 2396, "c1", "Makita", "Drill", "XPH12", "Chuck wobble", "Priya Shah", 80, "2026-10-22"],
+  ["rh12", 2399, "c4", "DeWalt", "Table saw", "DWE7491", "Riving knife misaligned", "Sam Ortiz", 175, "2026-10-29"],
+];
+
+const METHODS = ["card", "cash", "transfer"] as const;
+
+export function seedData() {
+  const customers: Customer[] = [
+    ["c1", "James Holt", "(303) 555-0101", "james.holt@email.example", "Framing crew. Often rushes saws.", "2026-04-02T15:00:00.000Z"],
+    ["c2", "Dana Whitfield", "(303) 555-0102", "dana.whitfield@email.example", "Owns a concrete outfit on Brighton Blvd.", "2026-05-11T15:00:00.000Z"],
+    ["c3", "Ruth Adler", "(303) 555-0103", "ruth.adler@email.example", "Prefers a text when the vac is ready.", "2026-05-19T15:00:00.000Z"],
+    ["c4", "Luis Ortega", "(303) 555-0104", "luis.ortega@email.example", "Fleet of DeWalt drills. Net 7 is fine.", "2026-06-02T15:00:00.000Z"],
+    ["c5", "Elena Voss", "(303) 555-0105", "elena.voss@email.example", "Cabinet shop. Asks for written estimates.", "2026-06-18T15:00:00.000Z"],
+    ["c6", "Chris Bale", "(303) 555-0106", "chris.bale@email.example", "Weekend remodeler.", "2026-07-01T15:00:00.000Z"],
+    ["c7", "Marcus Chen", "(303) 555-0107", "marcus.chen@email.example", "Electrical contractor.", "2026-07-14T15:00:00.000Z"],
+    ["c8", "Owen Blake", "(303) 555-0108", "owen.blake@email.example", "Will pick up after 4.", "2026-08-03T15:00:00.000Z"],
+    ["c9", "Harper Quinn", "(303) 555-0109", "harper.quinn@email.example", "Finish carpenter. Festool only.", "2026-08-20T15:00:00.000Z"],
+    ["c10", "Nina Alvarez", "(303) 555-0110", "nina.alvarez@email.example", "Site supervisor at Summit Ridge.", "2026-09-09T15:00:00.000Z"],
+  ].map(([id, name, phone, email, notes, createdAt]) => ({ id, name, phone, email, notes, createdAt }));
+
+  const parts: Part[] = [
+    { id: "p1", sku: "BR-014", name: "Carbon brush set", category: "Wear parts", qty: 1, min: 4, cost: 8, price: 22, bin: "A-12" },
+    { id: "p2", sku: "BR-088", name: "M18 XC 5.0 battery", category: "Power", qty: 2, min: 4, cost: 79, price: 149, bin: "C-02" },
+    { id: "p3", sku: "BR-203", name: '7-1/4" carbide blade', category: "Blades", qty: 2, min: 6, cost: 14, price: 29, bin: "B-04" },
+    { id: "p4", sku: "BR-090", name: "DeWalt DCB205 battery", category: "Power", qty: 8, min: 3, cost: 69, price: 129, bin: "C-03" },
+    { id: "p5", sku: "BR-311", name: "Bosch jigsaw trigger", category: "Switches", qty: 5, min: 2, cost: 18, price: 42, bin: "A-20" },
+    { id: "p6", sku: "BR-441", name: "Festool dust port", category: "Body", qty: 3, min: 2, cost: 16, price: 36, bin: "D-01" },
+    { id: "p7", sku: "BR-118", name: "Impact chuck assembly", category: "Drive", qty: 4, min: 2, cost: 22, price: 48, bin: "A-08" },
+    { id: "p8", sku: "BR-502", name: "14/3 power cord", category: "Electrical", qty: 6, min: 2, cost: 11, price: 28, bin: "E-06" },
+    { id: "p9", sku: "BR-017", name: "Gear grease tube", category: "Consumable", qty: 9, min: 3, cost: 4, price: 9, bin: "E-01" },
+    { id: "p10", sku: "BR-700", name: "Safety glasses", category: "Shop", qty: 20, min: 6, cost: 3, price: 8, bin: "F-02" },
+    { id: "p11", sku: "BR-091", name: "M18 charger", category: "Power", qty: 4, min: 2, cost: 29, price: 59, bin: "C-04" },
+    { id: "p12", sku: "BR-220", name: "Grinder guard", category: "Safety", qty: 3, min: 2, cost: 12, price: 27, bin: "A-15" },
+  ];
+
+  const active: Repair[] = [
+    repair({
+      id: "r1",
+      number: 2408,
+      customerId: "c1",
+      brand: "Milwaukee",
+      tool: "Circular saw",
+      model: "2730-20",
+      serial: "MWL-440218",
+      issue: "Blade guard sticks open and the shoe is bent.",
+      status: "in_queue",
+      priority: "normal",
+      tech: "Sam Ortiz",
+      intakeAt: "2026-11-23T09:10:00.000Z",
+      labor: 90,
+      notes: "Needs it before Friday's framing job.",
+    }),
+    repair({
+      id: "r2",
+      number: 2407,
+      customerId: "c2",
+      brand: "Hilti",
+      tool: "Rotary hammer",
+      model: "TE 6-A22",
+      serial: "HLT-88211",
+      issue: "Power cuts out under load.",
+      status: "in_queue",
+      priority: "rush",
+      tech: "Priya Shah",
+      intakeAt: "2026-11-23T08:40:00.000Z",
+      labor: 125,
+      notes: "Rush — jobsite is down.",
+    }),
+    repair({
+      id: "r3",
+      number: 2406,
+      customerId: "c3",
+      brand: "Ridgid",
+      tool: "Shop vac",
+      model: "WD4070",
+      serial: "RDG-19002",
+      issue: "Weak suction after a drywall job.",
+      status: "in_queue",
+      priority: "normal",
+      tech: "Sam Ortiz",
+      intakeAt: "2026-11-22T16:20:00.000Z",
+      labor: 55,
+      notes: "Filter was packed. Check the hose cuff too.",
+    }),
+    repair({
+      id: "r4",
+      number: 2405,
+      customerId: "c4",
+      brand: "DeWalt",
+      tool: "Hammer drill",
+      model: "DCD996",
+      serial: "DWT-55190",
+      issue: "Won't hold a charge past ten minutes.",
+      status: "in_progress",
+      priority: "rush",
+      tech: "Alex Rivera",
+      intakeAt: "2026-11-21T15:00:00.000Z",
+      labor: 95,
+      notes: "Battery test running. Cells look uneven.",
+    }),
+    repair({
+      id: "r5",
+      number: 2404,
+      customerId: "c5",
+      brand: "Makita",
+      tool: "Angle grinder",
+      model: "GA5030",
+      serial: "MKT-22014",
+      issue: "Sparking at the brushes and a burning smell.",
+      status: "in_progress",
+      priority: "normal",
+      tech: "Priya Shah",
+      intakeAt: "2026-11-21T11:30:00.000Z",
+      labor: 70,
+      notes: "Brushes replaced. Commutator needs a light dress.",
+      partsUsed: [{ partId: "p1", qty: 1 }],
+    }),
+    repair({
+      id: "r6",
+      number: 2403,
+      customerId: "c6",
+      brand: "Ryobi",
+      tool: "Miter saw",
+      model: "TSS702",
+      serial: "RYB-77301",
+      issue: "Laser won't track the blade.",
+      status: "in_progress",
+      priority: "normal",
+      tech: "Sam Ortiz",
+      intakeAt: "2026-11-20T18:00:00.000Z",
+      labor: 80,
+      notes: "Alignment started. Waiting on a clear bench.",
+    }),
+    repair({
+      id: "r7",
+      number: 2402,
+      customerId: "c7",
+      brand: "DeWalt",
+      tool: "Impact driver",
+      model: "DCF887",
+      serial: "DWT-10933",
+      issue: "Chuck slips under load.",
+      status: "in_progress",
+      priority: "normal",
+      tech: "Alex Rivera",
+      intakeAt: "2026-11-20T14:15:00.000Z",
+      labor: 85,
+      notes: "Anvil is mushroomed. Quote a chuck if it worsens.",
+    }),
+    repair({
+      id: "r8",
+      number: 2401,
+      customerId: "c8",
+      brand: "Bosch",
+      tool: "Jigsaw",
+      model: "JS470E",
+      serial: "BSH-33018",
+      issue: "Dead trigger. No spin at all.",
+      status: "ready",
+      priority: "normal",
+      tech: "Priya Shah",
+      intakeAt: "2026-11-19T17:40:00.000Z",
+      labor: 65,
+      notes: "New trigger fitted and tested on a scrap of oak.",
+      partsUsed: [{ partId: "p5", qty: 1 }],
+    }),
+    repair({
+      id: "r9",
+      number: 2400,
+      customerId: "c9",
+      brand: "Festool",
+      tool: "Track saw",
+      model: "TS 55",
+      serial: "FES-88120",
+      issue: "Cracked dust port. Customer wants it sealed.",
+      status: "ready",
+      priority: "normal",
+      tech: "Alex Rivera",
+      intakeAt: "2026-11-18T15:05:00.000Z",
+      labor: 140,
+      notes: "Port bonded and a new fitting installed. Invoice is open.",
+      partsUsed: [{ partId: "p6", qty: 1 }],
+    }),
+    repair({
+      id: "r10",
+      number: 2398,
+      customerId: "c5",
+      brand: "Milwaukee",
+      tool: "Charger",
+      model: "48-59-1802",
+      serial: "MWL-10021",
+      issue: "No output. LED stays dark.",
+      status: "ready",
+      priority: "normal",
+      tech: "Sam Ortiz",
+      intakeAt: "2026-11-18T13:20:00.000Z",
+      labor: 45,
+      notes: "Board reflowed. Charges an M18 pack again.",
+    }),
+  ];
+
+  const historyRepairs: Repair[] = HISTORY.map((row) => {
+    const [id, number, customerId, brand, tool, model, issue, tech, labor, done] = row;
+    return repair({
+      id,
+      number,
+      customerId,
+      brand,
+      tool,
+      model,
+      serial: "",
+      issue,
+      status: "picked_up",
+      priority: "normal",
+      tech,
+      intakeAt: `${done}T15:00:00.000Z`,
+      completedAt: `${done}T21:00:00.000Z`,
+      labor,
+      notes: "Closed and released to the customer.",
+    });
+  });
+
+  const historyInvoices: Invoice[] = HISTORY.map((row, index) => {
+    const [id, , customerId, brand, , model, , , labor, done] = row;
+    return {
+      id: `inv_h${index + 1}`,
+      number: 860 + index,
+      customerId,
+      repairId: id,
+      status: "paid",
+      lines: [{ id: `ln_h${index + 1}`, description: `Labor — ${brand} ${model}`, qty: 1, price: labor }],
+      taxRate: TAX,
+      method: METHODS[index % METHODS.length],
+      createdAt: `${done}T18:00:00.000Z`,
+      paidAt: `${done}T21:00:00.000Z`,
+    };
+  });
+
+  const openInvoice: Invoice = {
+    id: "inv_open",
+    number: 889,
+    customerId: "c9",
+    repairId: "r9",
+    status: "unpaid",
+    lines: [
+      { id: "ln_open_1", description: "Labor — Festool TS 55", qty: 1, price: 140 },
+      { id: "ln_open_2", description: "Festool dust port", qty: 1, price: 36 },
+    ],
+    taxRate: TAX,
+    method: "",
+    createdAt: "2026-11-20T18:00:00.000Z",
+    paidAt: null,
+  };
+
+  const estimates: Estimate[] = [
+    {
+      id: "e1",
+      number: 318,
+      customerId: "c4",
+      repairId: "r4",
+      status: "draft",
+      lines: [{ id: "ln_e1", description: "Labor — DeWalt DCD996 battery diagnosis", qty: 1, price: 95 }],
+      note: "Hold until the cell test finishes.",
+      createdAt: "2026-11-21T19:00:00.000Z",
+    },
+    {
+      id: "e2",
+      number: 319,
+      customerId: "c5",
+      repairId: "r5",
+      status: "sent",
+      lines: [
+        { id: "ln_e2a", description: "Labor — Makita GA5030", qty: 1, price: 70 },
+        { id: "ln_e2b", description: "Carbon brush set", qty: 1, price: 22 },
+      ],
+      note: "Texted this morning. Waiting on a yes.",
+      createdAt: "2026-11-22T15:30:00.000Z",
+    },
+    {
+      id: "e3",
+      number: 317,
+      customerId: "c9",
+      repairId: "r9",
+      status: "accepted",
+      lines: [
+        { id: "ln_e3a", description: "Labor — Festool TS 55", qty: 1, price: 140 },
+        { id: "ln_e3b", description: "Festool dust port", qty: 1, price: 36 },
+      ],
+      note: "Accepted at the counter.",
+      createdAt: "2026-11-18T16:00:00.000Z",
+    },
+  ];
+
+  const expenses: Expense[] = [
+    { id: "x1", category: "Rent", vendor: "Summit Ridge LLC", amount: 2800, date: "2026-08-01", note: "August bench rent" },
+    { id: "x2", category: "Parts", vendor: "Front Range Tool Supply", amount: 640, date: "2026-08-12", note: "Brushes, cords, blades" },
+    { id: "x3", category: "Utilities", vendor: "Xcel Energy", amount: 210, date: "2026-08-18", note: "" },
+    { id: "x4", category: "Rent", vendor: "Summit Ridge LLC", amount: 2800, date: "2026-09-01", note: "September bench rent" },
+    { id: "x5", category: "Parts", vendor: "Front Range Tool Supply", amount: 720, date: "2026-09-14", note: "M18 packs" },
+    { id: "x6", category: "Insurance", vendor: "Peak Trade Insurance", amount: 180, date: "2026-09-20", note: "Shop policy" },
+    { id: "x7", category: "Rent", vendor: "Summit Ridge LLC", amount: 2800, date: "2026-10-01", note: "October bench rent" },
+    { id: "x8", category: "Utilities", vendor: "Xcel Energy", amount: 198, date: "2026-10-16", note: "" },
+    { id: "x9", category: "Parts", vendor: "Front Range Tool Supply", amount: 510, date: "2026-10-21", note: "Festool fittings" },
+    { id: "x10", category: "Marketing", vendor: "Neighborhood flyer", amount: 85, date: "2026-11-02", note: "Counter cards" },
+  ];
+
+  const inquiries: Inquiry[] = [
+    {
+      id: "iq1",
+      name: "Caleb Brooks",
+      phone: "(303) 555-0144",
+      channel: "web",
+      message: "Do you service Festool track saws, or only the big-box brands?",
+      status: "new",
+      reply: "",
+      createdAt: "2026-11-23T08:05:00.000Z",
+    },
+    {
+      id: "iq2",
+      name: "Sofia Marin",
+      phone: "(303) 555-0160",
+      channel: "phone",
+      message: "Milwaukee saw died mid-cut. Can I drop it off tomorrow morning?",
+      status: "new",
+      reply: "",
+      createdAt: "2026-11-22T20:15:00.000Z",
+    },
+    {
+      id: "iq3",
+      name: "Owen Blake",
+      phone: "(303) 555-0108",
+      channel: "email",
+      message: "Any update on the jigsaw trigger?",
+      status: "replied",
+      reply: "It's ready at the counter. Open until 6.",
+      createdAt: "2026-11-20T13:00:00.000Z",
+    },
+  ];
+
+  const settings: Settings = {
+    shopName: "Summit Power Tool Repair",
+    owner: "Alex Rivera",
+    initials: "AR",
+    phone: "(303) 555-0140",
+    email: "bench@summitpowertool.example",
+    address: "1840 Summit Ridge Rd, Denver, CO 80211",
+    hours: "Mon–Fri 8:00–6:00 · Sat 9:00–2:00",
+    taxRate: TAX,
+    paymentsConnected: false,
+    bannerDismissed: false,
+    techs: ["Alex Rivera", "Sam Ortiz", "Priya Shah"],
+  };
+
+  const seq: Seq = { repair: 2411, estimate: 320, invoice: 890, part: 120 };
+
+  return {
+    customers,
+    repairs: [...active, ...historyRepairs],
+    parts,
+    estimates,
+    invoices: [openInvoice, ...historyInvoices],
+    expenses,
+    inquiries,
+    settings,
+    seq,
+  };
+}
+
+function repair(partial: Omit<Repair, "completedAt" | "partsUsed"> & { completedAt?: string | null; partsUsed?: Repair["partsUsed"] }): Repair {
+  return {
+    completedAt: null,
+    partsUsed: [],
+    ...partial,
+  };
+}

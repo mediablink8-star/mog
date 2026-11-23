@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0c0b0a;
+  --color-sidebar: #121110;
+  --color-surface: #1b1916;
+  --color-surface-2: #262320;
+  --color-fg: #f6f3ee;
+  --color-muted: #a39c93;
+  --color-faint: #8a837a;
+  --color-line: #34302c;
+  --color-primary: #f5a318;
+  --color-primary-hover: #ffb42e;
+  --color-primary-fg: #1c1304;
+  --color-danger: #f05252;
+  --color-success: #3dce8a;
+  --color-info: #6cb0ff;
+  --color-promo: #8b5cf6;
+  --color-promo-deep: #5b21b6;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --shadow-ring: 0 0 0 1px rgb(255 255 255 / 0.07);
+  --shadow-nav: 0 10px 24px -12px rgb(245 163 24 / 0.9);
+  --radius-card: 1.5rem;
+}
+
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--color-primary);
+    color: var(--color-primary-fg);
+  }
+}
+
+.hero-panel {
+  background:
+    radial-gradient(90% 140% at 100% 0%, rgb(245 163 24 / 0.18), transparent 42%),
+    linear-gradient(180deg, var(--color-surface), #141210 100%);
+  box-shadow: var(--shadow-ring);
+}
+
+.promo-banner {
+  background: linear-gradient(100deg, var(--color-promo-deep), var(--color-promo));
+}
+
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
