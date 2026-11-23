@@ -6,11 +6,11 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "migrate": "node scripts/migrate.mjs",
-    "seed": "node scripts/seed-admin.mjs",
-    "dev": "node --watch server.js",
-    "test": "node --test test/"
+    "start": "tsx server.js",
+    "migrate": "tsx scripts/migrate.mjs",
+    "seed": "tsx scripts/seed-admin.mjs",
+    "dev": "tsx --watch server.js",
+    "test": "tsx --test test/"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
@@ -22,5 +22,8 @@
     "pg": "^8.16.3",
     "uuid": "^11.1.0",
     "zod": "^4.4.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2"
   }
 }
