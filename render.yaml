@@ -1,0 +1,34 @@
+# Render deployment configuration
+#
+# Deploy the JARVIS Shop OS API (Express + PostgreSQL) to Render.
+#
+# Create a free web-service project in Render → "Add a new app",
+# connect this repository, and Render will use the settings below.
+#
+# Required: set the four env vars (see .env.example) in Render
+# Dashboard → Settings → Environment → "Add environment variable".
+#
+# Build:    npm ci        (in the backend/ directory)
+# Start:    npm start     (node server.js)
+#
+# If your Render project still uses the repo root as its launch directory,
+# change "rootDirectory" below to "backend".
+services:
+  - type: web
+    name: jarvis-shop-api
+    runtime: node
+    buildCommand: npm ci
+    startCommand: npm start
+    rootDirectory: backend
+    envVars:
+      - key: DATABASE_URL
+        # Supabase-compatible PostgreSQL connection string (ssl=true is assumed).
+        # Render users often prefer to create a PostgreSQL (render.com) or
+        # external (Supabase/Neon) database and paste the connection string here.
+        value: <POSTGRES_CONNECTION_STRING>
+      - key: ADMIN_PASSWORD
+        value: <ADMIN_PASSWORD_FOR_FIRST_LOGIN>
+      - key: JWT_SECRET
+        value: <AT_LEAST_32_RANDOM_CHARACTERS>
+      - key: CORS_ORIGIN
+        value: "*"
