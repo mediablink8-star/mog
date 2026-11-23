@@ -30,9 +30,13 @@ let pool: DbPool | null = null;
 export function getPool(): DbPool {
   if (pool) return pool;
   if (env.DATABASE_URL) {
+    // Render PostgreSQL uses self-signed certs; render-requested URLs include ?ssl=true
+    const sslConfig = env.DATABASE_SSL
+      ? { rejectUnauthorized: false }
+      : false;
     pool = new Pool({
       connectionString: env.DATABASE_URL,
-      ssl: env.DATABASE_SSL,
+      ssl: sslConfig,
       max: 5,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
