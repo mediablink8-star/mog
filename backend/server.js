@@ -50,12 +50,13 @@ async function ensureSchema() {
   if (!pool) return;
   await pool.query(`
     CREATE TABLE IF NOT EXISTS jarvis_records (
-      id UUID PRIMARY KEY,
+      id TEXT PRIMARY KEY,
       collection TEXT NOT NULL CHECK (collection IN ('repairs','customers','inventory','sales','settings')),
       data JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+    ALTER TABLE jarvis_records ALTER COLUMN id TYPE TEXT USING id::text;
     CREATE INDEX IF NOT EXISTS jarvis_records_collection_updated
       ON jarvis_records (collection, updated_at DESC);
   `);
@@ -103,7 +104,7 @@ app.post("/api/:collection", async (req, res, next) => {
     const { collection } = req.params;
     if (!validCollection(collection)) return res.status(404).json({ error: "Unknown collection." });
     if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) return res.status(400).json({ error: "Expected a JSON object." });
-    const id = crypto.randomUUID();
+    const id = String(req.body.id || crypto.randomUUID());
     const data = { ...req.body };
     delete data.id; delete data.createdAt; delete data.updatedAt;
     const { rows } = await pool.query(
@@ -112,6 +113,29 @@ app.post("/api/:collection", async (req, res, next) => {
     );
     res.status(201).json({ id: rows[0].id, ...rows[0].data, createdAt: rows[0].createdAt, updatedAt: rows[0].updatedAt });
   } catch (e) { next(e); }
+});
+
+app.put("/api/:collection", async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    const { collection } = req.params;
+    if (!validCollection(collection)) return res.status(404).json({ error: "Unknown collection." });
+    if (!Array.isArray(req.body)) return res.status(400).json({ error: "Expected an array of records." });
+    if (req.body.length > 500) return res.status(413).json({ error: "Too many records." });
+    await client.query("BEGIN");
+    await client.query("DELETE FROM jarvis_records WHERE collection=$1", [collection]);
+    for (const item of req.body) {
+      if (!item || typeof item !== "object" || Array.isArray(item)) throw new Error("Invalid record.");
+      const id = String(item.id || crypto.randomUUID());
+      const data = { ...item }; delete data.id; delete data.createdAt; delete data.updatedAt;
+      await client.query("INSERT INTO jarvis_records (id, collection, data) VALUES ($1,$2,$3::jsonb)", [id, collection, JSON.stringify(data)]);
+    }
+    await client.query("COMMIT");
+    res.json({ ok: true, count: req.body.length });
+  } catch (e) {
+    await client.query("ROLLBACK");
+    next(e);
+  } finally { client.release(); }
 });
 
 app.put("/api/:collection/:id", async (req, res, next) => {
