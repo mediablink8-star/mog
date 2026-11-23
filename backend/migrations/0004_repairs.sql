@@ -1,7 +1,7 @@
 -- 0004_repairs.sql
 -- Repair tickets, status history, notes, diagnosis.
 
-CREATE TABLE repairs (
+CREATE TABLE IF NOT EXISTS repairs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
   ticket_number TEXT NOT NULL,
@@ -29,12 +29,12 @@ CREATE TABLE repairs (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_repairs_ticket_number ON repairs (ticket_number);
-CREATE INDEX idx_repairs_business_status ON repairs (business_id, status);
-CREATE INDEX idx_repairs_date_received ON repairs (date_received);
-CREATE INDEX idx_repairs_customer ON repairs (customer_id);
+CREATE INDEX IF NOT EXISTS idx_repairs_ticket_number ON repairs (ticket_number);
+CREATE INDEX IF NOT EXISTS idx_repairs_business_status ON repairs (business_id, status);
+CREATE INDEX IF NOT EXISTS idx_repairs_date_received ON repairs (date_received);
+CREATE INDEX IF NOT EXISTS idx_repairs_customer ON repairs (customer_id);
 
-CREATE TABLE repair_status_history (
+CREATE TABLE IF NOT EXISTS repair_status_history (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   repair_id UUID NOT NULL REFERENCES repairs(id) ON DELETE CASCADE,
   from_status TEXT NOT NULL DEFAULT '',
@@ -43,9 +43,9 @@ CREATE TABLE repair_status_history (
   changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_status_history_repair ON repair_status_history (repair_id);
+CREATE INDEX IF NOT EXISTS idx_status_history_repair ON repair_status_history (repair_id);
 
-CREATE TABLE repair_notes (
+CREATE TABLE IF NOT EXISTS repair_notes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   repair_id UUID NOT NULL REFERENCES repairs(id) ON DELETE CASCADE,
   author TEXT NOT NULL DEFAULT '',
@@ -53,9 +53,9 @@ CREATE TABLE repair_notes (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_notes_repair ON repair_notes (repair_id);
+CREATE INDEX IF NOT EXISTS idx_notes_repair ON repair_notes (repair_id);
 
-CREATE TABLE repair_diagnosis (
+CREATE TABLE IF NOT EXISTS repair_diagnosis (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   repair_id UUID NOT NULL REFERENCES repairs(id) ON DELETE CASCADE,
   diagnosis TEXT NOT NULL,
@@ -63,9 +63,9 @@ CREATE TABLE repair_diagnosis (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_diagnosis_repair ON repair_diagnosis (repair_id);
+CREATE INDEX IF NOT EXISTS idx_diagnosis_repair ON repair_diagnosis (repair_id);
 
-CREATE TABLE repair_parts_used (
+CREATE TABLE IF NOT EXISTS repair_parts_used (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   repair_id UUID NOT NULL REFERENCES repairs(id) ON DELETE CASCADE,
   product_id UUID REFERENCES products(id) ON DELETE SET NULL,
@@ -76,4 +76,4 @@ CREATE TABLE repair_parts_used (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_parts_repair ON repair_parts_used (repair_id);
+CREATE INDEX IF NOT EXISTS idx_parts_repair ON repair_parts_used (repair_id);

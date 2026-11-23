@@ -1,7 +1,7 @@
 -- 0002_core_tables.sql
 -- Customers, products, suppliers, stock movements.
 
-CREATE TABLE customers (
+CREATE TABLE IF NOT EXISTS customers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
   first_name TEXT NOT NULL,
@@ -13,13 +13,13 @@ CREATE TABLE customers (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE UNIQUE INDEX idx_customers_phone_business
+CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_phone_business
   ON customers (business_id, phone);
 
-CREATE INDEX idx_customers_name ON customers (first_name, last_name);
-CREATE INDEX idx_customers_business ON customers (business_id);
+CREATE INDEX IF NOT EXISTS idx_customers_name ON customers (first_name, last_name);
+CREATE INDEX IF NOT EXISTS idx_customers_business ON customers (business_id);
 
-CREATE TABLE products (
+CREATE TABLE IF NOT EXISTS products (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -36,13 +36,13 @@ CREATE TABLE products (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE UNIQUE INDEX idx_products_sku_business
+CREATE UNIQUE INDEX IF NOT EXISTS idx_products_sku_business
   ON products (business_id, sku);
 
-CREATE INDEX idx_products_category ON products (category);
-CREATE INDEX idx_products_business ON products (business_id);
+CREATE INDEX IF NOT EXISTS idx_products_category ON products (category);
+CREATE INDEX IF NOT EXISTS idx_products_business ON products (business_id);
 
-CREATE TABLE suppliers (
+CREATE TABLE IF NOT EXISTS suppliers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -52,9 +52,9 @@ CREATE TABLE suppliers (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_suppliers_business ON suppliers (business_id);
+CREATE INDEX IF NOT EXISTS idx_suppliers_business ON suppliers (business_id);
 
-CREATE TABLE inventory_movements (
+CREATE TABLE IF NOT EXISTS inventory_movements (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
   business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
@@ -65,5 +65,5 @@ CREATE TABLE inventory_movements (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_movements_product ON inventory_movements (product_id);
-CREATE INDEX idx_movements_business ON inventory_movements (business_id);
+CREATE INDEX IF NOT EXISTS idx_movements_product ON inventory_movements (product_id);
+CREATE INDEX IF NOT EXISTS idx_movements_business ON inventory_movements (business_id);

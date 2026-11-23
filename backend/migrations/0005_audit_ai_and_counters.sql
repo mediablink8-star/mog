@@ -1,7 +1,7 @@
 -- 0005_audit_ai_and_counters.sql
 -- Audit trail, AI conversation history, ticket sequence counters.
 
-CREATE TABLE audit_logs (
+CREATE TABLE IF NOT EXISTS audit_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
   action TEXT NOT NULL,
@@ -13,9 +13,9 @@ CREATE TABLE audit_logs (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_audit_business ON audit_logs (business_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_business ON audit_logs (business_id, created_at DESC);
 
-CREATE TABLE ai_conversations (
+CREATE TABLE IF NOT EXISTS ai_conversations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
   title TEXT NOT NULL DEFAULT '',
@@ -25,9 +25,9 @@ CREATE TABLE ai_conversations (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_ai_conversations_business ON ai_conversations (business_id, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ai_conversations_business ON ai_conversations (business_id, updated_at DESC);
 
-CREATE TABLE system_counters (
+CREATE TABLE IF NOT EXISTS system_counters (
   id TEXT PRIMARY KEY,
   seq INTEGER NOT NULL DEFAULT 0
 );
